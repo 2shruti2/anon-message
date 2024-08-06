@@ -1,4 +1,5 @@
 ## Technologies used:
 1. Next js
-2. Mongoose
-3. Mongo db
+2. Zod
+3. Mongoose
+4. Mongo db
