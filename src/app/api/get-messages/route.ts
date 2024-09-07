@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth/next";
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/model/User";
 import { User } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/option";
+import { authOptions } from "../auth/[...nextauth]/options";
 import mongoose from "mongoose";
 
 export async function GET(request: Request) {

@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react"; // Import useSession
 import {
   Form,
   FormField,
@@ -17,9 +17,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
 import { signInSchema } from "@/schemas/signInSchema";
+import { useEffect } from "react";
 
 export default function SignInForm() {
+  const { data: session, status } = useSession(); // Get session info
   const router = useRouter();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Redirect to dashboard if already signed in
+    if (session) {
+      router.replace("/dashboard");
+    }
+  }, [session, router]);
 
   const form = useForm<z.infer<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
@@ -29,14 +39,16 @@ export default function SignInForm() {
     },
   });
 
-  const { toast } = useToast();
   const onSubmit = async (data: z.infer<typeof signInSchema>) => {
     const result = await signIn("credentials", {
-      redirect: false,
+      redirect: false, // Prevent automatic redirection
       identifier: data.identifier,
       password: data.password,
+      callbackUrl: "/dashboard", // Set a custom callback URL
     });
 
+    console.log("results ", result)
+  
     if (result?.error) {
       if (result.error === "CredentialsSignin") {
         toast({
@@ -51,12 +63,20 @@ export default function SignInForm() {
           variant: "destructive",
         });
       }
-    }
-
-    if (result?.url) {
-      router.replace("/dashboard");
+    } else if (result?.url) {
+      // Manual redirect to dashboard if successful
+      router.replace(result.url); 
     }
   };
+  
+
+  if (status === "loading") {
+    return <p>Loading...</p>; // Show a loading state while session is being checked
+  }
+
+  if (session) {
+    return null; // Don't render the form if the user is already authenticated
+  }
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-800">
